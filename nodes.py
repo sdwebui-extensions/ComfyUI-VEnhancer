@@ -48,6 +48,8 @@ class DownloadAndLoadVEnhancerModel:
         pbar = comfy.utils.ProgressBar(1)
         
         download_path = os.path.join(folder_paths.models_dir, "venhancer")
+        if os.path.exists(folder_paths.cache_dir):
+            download_path = os.path.join(folder_paths.cache_dir, "venhancer")
         model_path = os.path.join(download_path, model)
         
         if not os.path.exists(model_path):
