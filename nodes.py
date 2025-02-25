@@ -6,21 +6,10 @@ import folder_paths
 import comfy.model_management as mm
 import comfy.utils
 
-from .video_to_video.video_to_video_model import VideoToVideo
-from .video_to_video.utils.seed import setup_seed
-from .inference_utils import collate_fn, make_mask_cond, adjust_resolution
-from .video_to_video.modules.unet_v2v import ControlledV2VUNet
 
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
 from contextlib import nullcontext
-try:
-    from accelerate import init_empty_weights
-    from accelerate.utils import set_module_tensor_to_device
-    is_accelerate_available = True
-except:
-    is_accelerate_available = False
-    pass
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -41,6 +30,15 @@ class DownloadAndLoadVEnhancerModel:
     CATEGORY = "VEnhancer"
 
     def loadmodel(self, model, precision, torch_compile):
+        from .video_to_video.video_to_video_model import VideoToVideo
+        from .video_to_video.modules.unet_v2v import ControlledV2VUNet
+        try:
+            from accelerate import init_empty_weights
+            from accelerate.utils import set_module_tensor_to_device
+            is_accelerate_available = True
+        except:
+            is_accelerate_available = False
+            pass
         device = mm.get_torch_device()
         mm.soft_empty_cache()
         dtype = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp8_e4m3fn": torch.float8_e4m3fn}[precision]
@@ -116,6 +114,8 @@ class VEnhancerSampler:
 
     def process(self, venhancer_model, images, steps, guide_scale, solver_mode, s_cond, seed, prompt, up_scale, input_fps, target_fps, 
                 noise_aug, keep_model_loaded, max_chunk_length, chunk_overlap_ratio):
+        from .video_to_video.utils.seed import setup_seed
+        from .inference_utils import collate_fn, make_mask_cond, adjust_resolution
         
         B, H, W, C = images.shape
         device = mm.get_torch_device()
